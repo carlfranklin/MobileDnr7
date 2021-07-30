@@ -156,6 +156,7 @@ Add the following code to the top of `GetNextBatchOfShows()` :
 ```c#
 if (EpisodeFilter != "")
 {
+    AllShows.Clear();
     await GetNextBatchOfFilteredShows();
     return;
 }
@@ -254,6 +255,16 @@ Our **ADD/REMOVE** button will pass the `PlayList`'s Id property, which we can p
 
 The `Guid` is passed as a string. 
 
+To  *PlayListManagerPage.xaml* add the following just above the **DELETE** button definition:
+
+```xaml
+<Button Text="Add/Remove" 
+        Command="{Binding AddRemove,
+                 Source={RelativeSource AncestorType=
+                 {x:Type viewmodels:PlayListManagerPageViewModel}}}" 
+        CommandParameter="{Binding Id}" />
+```
+
 #### Modify the HomePageViewModel
 
 Now, we need to modify *HomePageViewModel.cs* to handle the parameter.
@@ -264,6 +275,7 @@ First, we need a few using statements:
 using Xamarin.Essentials;
 using MonkeyCache.FileStore;
 using Newtonsoft.Json;
+using System.Web;
 ```
 
 Add the following line to the top of the class:
@@ -328,7 +340,7 @@ public void ApplyQueryAttributes(IDictionary<string, string> query)
 
 ### Step 34: Implement the SELECT feature
 
-Let's add the command for the **SELECT** button to execute:
+To *HomePageViewModel.cs add the command for the **SELECT** button to execute:
 
 ```c#
 private ICommand selectShowForPlayList;
@@ -348,11 +360,12 @@ public async Task PerformSelectShowForPlayList(int ShowId)
 {
     await Task.Delay(0);
     if (SelectedPlayList == null) return;
-    var show = (from x in SelectedPlayList.Shows 
+    var show = (from x in SelectedPlayList.Shows
                 where x.Id == ShowId select x).FirstOrDefault();
-    if (show != null)
+    if (show == null)
     {
-        SelectedPlayList.Shows.Add(show);
+        var addThis = (from x in AllShows where x.Id == ShowId select x).First();
+        SelectedPlayList.Shows.Add(addThis);
         string json = JsonConvert.SerializeObject(SelectedPlayList);
         string FileName = $"{CacheDir}/{SelectedPlayList.Id}.json";
         System.IO.File.WriteAllText(FileName, json);
@@ -361,7 +374,7 @@ public async Task PerformSelectShowForPlayList(int ShowId)
 }
 ```
 
-`PerformSelectShowForPlayList` checks to see if the show specified by `ShowId` is in the `SelectedPlayList.Shows` list. If not, it adds it and saves the `SelectedPlayList` to storage.
+`PerformSelectShowForPlayList` checks to see if the show specified by `ShowId` is in the `SelectedPlayList.Shows` list. If not, it pulls the show from AllShows, adds it, and saves the `SelectedPlayList` to storage.
 
 Next, we need to determine whether to show the **SELECT** and **REMOVE** buttons. Let's start with **SELECT**.
 
@@ -439,25 +452,44 @@ Add this resource to the top of the page:
 </ContentPage.Resources>
 ```
 
-Next, add this to the `StackLayout` that contains the **EPISODE DETAILS** button, just before it:
+Next, replace this:
 
 ```xaml
-<Label x:Name="HiddenId" IsVisible="false" Text="{Binding Id}" />
-<Button Text="Select"
-        Command="{Binding SelectShowForPlayList,
+<Button Text="Episode Details"
+        Command="{Binding GoToDetailsPage,
                  Source={RelativeSource 
-                 	AncestorType={x:Type viewmodels:HomePageViewModel}}}"
-        CommandParameter ="{Binding Id}">
-    <Button.IsVisible>
-        <Binding Path="SelectedPlayList"
-                 Converter="{StaticResource PlayListToSelectButtonVisibleConverter}"
-                 ConverterParameter="{x:Reference HiddenId}"
-                 Source="{RelativeSource 
-                         AncestorType={x:Type viewmodels:HomePageViewModel}}">
-        </Binding>
-    </Button.IsVisible>
-</Button>
+                 AncestorType={x:Type viewmodels:HomePageViewModel}}}"
+        CommandParameter="{Binding ShowNumber}" />
 ```
+
+with this:
+
+```xaml
+<StackLayout Orientation="Horizontal">
+    <Label x:Name="HiddenId" IsVisible="false" Text="{Binding Id}" />
+    <Button Text="Select"
+            Command="{Binding SelectShowForPlayList,
+                     Source={RelativeSource 
+                     AncestorType={x:Type viewmodels:HomePageViewModel}}}"
+            CommandParameter ="{Binding Id}">
+        <Button.IsVisible>
+            <Binding Path="SelectedPlayList"
+                     Converter="{StaticResource PlayListToSelectButtonVisibleConverter}"
+                     ConverterParameter="{x:Reference HiddenId}"
+                     Source="{RelativeSource 
+                             AncestorType={x:Type viewmodels:HomePageViewModel}}">
+            </Binding>
+        </Button.IsVisible>
+    </Button>
+    <Button Text="Episode Details"
+            Command="{Binding GoToDetailsPage,
+                     Source={RelativeSource 
+                     AncestorType={x:Type viewmodels:HomePageViewModel}}}"
+            CommandParameter="{Binding ShowNumber}" />
+</StackLayout>
+```
+
+Both buttons go into a Horizontal StackLayout
 
 Here's the muck. I expanded the Button `IsVisible` binding into nested XAML so it's easier to follow.
 
@@ -503,8 +535,6 @@ protected override async void OnAppearing()
     viewModel.RefreshPlayLists();
 }
 ```
-
-
 
 Give it a go!
 
@@ -566,7 +596,7 @@ public async Task PerformRemoveShowFromPlayList(int ShowId)
 }
 ```
 
-`PerformRemoveShowFromPlayList` checks to see if the show specified by `ShowId` is in the `SelectedPlayList.Shows` list. If so, it removes the show from `SelectedPlayList` and writes it to storage.
+`PerformRemoveShowFromPlayList` checks to see if the show specified by `ShowId` is in the `SelectedPlayList.Shows` list. If so, it removes the show from `SelectedPlayList` and writes the `PlayList` to storage.
 
 Next, we need to determine whether to show the **REMOVE** button. 
 
