@@ -4,7 +4,7 @@
 
 See more projects at https://github.com/carlfranklin/DotNetShow
 
-Watch the video at 
+Watch the video at https://youtu.be/YEOFM92UbFI
 
 All episodes are listed at https://thedotnetshow.com
 
