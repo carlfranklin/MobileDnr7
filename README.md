@@ -98,6 +98,8 @@ We are also updating the XAML namespace `dxcv` in every view to this:
 xmlns:dxcv="http://schemas.devexpress.com/xamarin/2014/forms/collectionview"
 ```
 
+I've gone back through all the past repos and added these changes.
+
 OK, now back to our regularly-scheduled program
 
 ### Step 33: Add an Episode Filter
