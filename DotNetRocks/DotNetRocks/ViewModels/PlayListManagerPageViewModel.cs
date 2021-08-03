@@ -100,10 +100,6 @@ namespace DotNetRocks.ViewModels
             if (existing != null)
             {
                 string FileName = $"{CacheDir}/{Id}.json";
-                if (System.IO.File.Exists(FileName))
-                {
-                    System.IO.File.Delete(FileName);
-                }
                 DeletePlayList(existing);
             }
             base.OnPropertyChanged("PlayLists");
@@ -173,7 +169,7 @@ namespace DotNetRocks.ViewModels
                             select x).FirstOrDefault();
             if (existing != null)
             {
-                string FileName = $"{CacheDir}/{existing.Name}.json";
+                string FileName = $"{CacheDir}/{existing.Id}.json";
                 if (System.IO.File.Exists(FileName))
                 {
                     System.IO.File.Delete(FileName);

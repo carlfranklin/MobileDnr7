@@ -27,7 +27,9 @@ In this episode we are going to continue the Playlist feature. Here are the user
 
 ### BUT FIRST!
 
-We must fix a bug in last-week's code.
+We must fix a bug in last-week's code, and a bug in ALL of the previous projects.
+
+##### Bug #1: Deleting a PlayList
 
 In *PlayListManagerPageViewModel.cs*, check out the following method:
 
@@ -65,6 +67,30 @@ public async Task PerformDeletePlayList(Guid Id)
     base.OnPropertyChanged("PlayLists");
 }
 ```
+
+##### Bug #2: Required code for DevExpress iOS projects
+
+In the *DotNetRocks.iOS* project, in *AppDelegate.cs*, update the `FinishedLaunching` method to this:
+
+```c#
+public override bool FinishedLaunching(UIApplication app, NSDictionary options)
+{
+    global::Xamarin.Forms.Forms.Init();
+    DevExpress.XamarinForms.CollectionView.iOS.Initializer.Init();
+    CrossMediaManager.Current.Init();
+    LoadApplication(new App());
+
+    return base.FinishedLaunching(app, options);
+}
+```
+
+Also, in *App.xaml.cs*, update the constructor to this:
+
+```c#
+DevExpress.XamarinForms.CollectionView.Initializer.Init();
+```
+
+Without those initializers in there, the iOS app won't show anything. I have updated the previous repos to include this fix.
 
 OK, now back to our regularly-scheduled program
 
@@ -327,7 +353,6 @@ public void ApplyQueryAttributes(IDictionary<string, string> query)
     string Id = HttpUtility.UrlDecode(query["PlayListId"]);
     if (Id != "")
     {
-        var CacheDir = FileSystem.CacheDirectory + "/playlists";
         string FileName = $"{CacheDir}/{Id}.json";
         if (System.IO.File.Exists(FileName))
         {
