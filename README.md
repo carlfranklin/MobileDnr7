@@ -92,6 +92,12 @@ DevExpress.XamarinForms.CollectionView.Initializer.Init();
 
 Without those initializers in there, the iOS app won't show anything. I have updated the previous repos to include this fix.
 
+We are also updating the XAML namespace `dxcv` in every view to this:
+
+```xaml
+xmlns:dxcv="http://schemas.devexpress.com/xamarin/2014/forms/collectionview"
+```
+
 OK, now back to our regularly-scheduled program
 
 ### Step 33: Add an Episode Filter
